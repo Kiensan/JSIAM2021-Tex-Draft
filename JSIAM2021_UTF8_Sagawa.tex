@@ -1,0 +1,239 @@
+% --------------------------------------------------------------------------------------------
+% ---------- 日本応用数理学会年会予稿集原稿テンプレート ----------
+% --------------------------------------------------------------------------------------------
+%
+% ---------- 変更しないでください（ここから） ----------
+\documentclass[11pt,a4j]{jarticle}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\topmargin}{-.5cm}
+\setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\setlength{\footskip}{0cm}
+\setlength{\textwidth}{16cm}
+\setlength{\textheight}{24.7cm}
+\setlength{\abovecaptionskip}{0cm}
+\setlength{\footskip}{1cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.0pt}
+\lhead{}
+\chead{}
+\rhead{}
+\renewcommand{\footrulewidth}{0.4pt}
+\lfoot{\footnotesize 日本応用数理学会 2021年度 年会 講演予稿集 (2021.9.7--9)  Copyright (C) 2021 一般社団法人日本応用数理学会}
+\cfoot{}
+\rfoot{}
+\makeatletter
+\renewcommand{\baselinestretch}{1.3}\selectfont
+\def\Title#1{{\Large\bf#1}\\[6pt]}
+\def\Author#1{{\normalsize\hspace*{2zw}#1}\\[-4pt]}
+\def\Affiliation#1{{\normalsize\hspace*{2zw}#1}\\[-5pt]}
+\def\Email#1{\hspace*{2zw}e-mail : #1\\[0pt]}
+\renewcommand{\section}{\@startsection{section}{1}{\z@}%
+{2ex}{1ex}{\reset@font\large\bfseries}}%
+\renewcommand{\thesection}{\@arabic\c@section}
+\def\@listi{\topsep=.3\baselineskip \parsep=.2ex \partopsep=0ex%
+\itemsep=0ex \leftmargin=4ex \rightmargin=2ex}
+\let\@listI\@listi
+\@listi\def\@listii{\parsep=.2ex \partopsep=0pt \itemsep=0ex%
+\leftmargin=4ex \rightmargin=0ex}
+\let\@listiii\@listii
+\let\@listiv\@listii
+\let\@listv\@listii
+\let\@listvi\@listii
+\long\def\@makecaption#1#2{\footnotesize\sbox\@tempboxa{#1. #2}
+\ifdim\wd\@tempboxa >\hsize #1. #2\par
+\else \global\@minipagefalse
+\hb@xt@\hsize{\hfil\box\@tempboxa\hfil}
+\fi}
+\makeatother
+% ---------- 変更しないでください（ここまで） ----------
+%
+% ---------- お好みで変更および追加してください（ここから） ----------
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{url}
+\newtheorem{thm}{定理}
+\newtheorem{df}[thm]{定義}
+\newtheorem{lem}[thm]{補助定理}
+\newtheorem{prop}[thm]{補題}
+\def\proof{{\bf 証明}\hspace*{1zw}}
+\def\thanks{~\\[.5\baselineskip]{\bf 謝辞}\hspace*{1zw}}
+\def\labelenumi{\theenumi)}
+%  ------自前で追加--------
+\usepackage{amssymb}
+% 斜体のまま太字にする(大文字・小文字両方可)
+\newcommand{\bm}[1]{{\text{\boldmath $#1$}}}
+% 演算子と変数の定義
+\DeclareMathOperator{\odivide}{\circ \hspace{-.50em} \backslash}
+\DeclareMathOperator{\spt}{\,|\,}
+\newcommand{\veps}{\varepsilon}
+\newcommand{\hveps}{\bar{\varepsilon}}
+%
+% ---------- お好みで変更および追加してください（ここまで） ----------
+%
+\begin{document}
+\twocolumn[
+%
+% ---------- タイトル，著者名，所属，e-mailアドレスを記入してください（ここから） ----------
+\Title{DAG構造を持つMin-max-plusスケジューリングの求解}
+%%% 著者，所属が複数行になる場合は \author{}，\affiliation{}を追加してください
+\Author{佐川 恭平$^{1}$, 五島 洋行2名$^{2}$}
+\Affiliation{$^{1}$長岡技術科学 情報経営システム工学課程，$^{2}$所属2}
+\Email{kyohei.sagwa@gmail.com}
+% ---------- タイトル，著者名，所属，e-mailアドレスを記入してください（ここまで） ----------
+%
+]
+% ---------- 変更しないでください（ここから） ----------
+\renewcommand{\baselinestretch}{0.95}\selectfont
+% ---------- 変更しないでください（ここまで） ----------
+%
+% ---------- 本文（ここから）--------------------------------------------------------------------------------------------
+%
+% ---------------------------------------
+\section{はじめに}
+% ---------------------------------------
+Objective: HaskellによるMin-max-plus方程式の求解
+%
+% ---------------------------------------
+\section{Max-plus代数}
+% ---------------------------------------
+Max-plus代数は、$\mathbb{R}_{\rm{max}}=\mathbb{R} \cup \{ - \infty \}$上で演算$x \oplus y \equiv \rm{max}(x,y) $と$x \otimes y \equiv x + y$が定義された代数系である。さらにMin-max-plus代数では台集合を$\overline{\mathbb{R}}_{\rm{max}} = \mathbb{R} \cup \{ \pm \infty \}$に拡張し演算$x \wedge y = \rm{min}(x,y)$と$x \odivide y = -x + y$を追加する。
+
+Min-max-plus代数で定義されるMin-Max-plus System(MMPS)は、MMPS表現$f$と、変数$x_I$を用いて
+\begin{equation}
+f = x_i \spt \alpha \spt f_k \oplus f_i \spt f_k \wedge f_i \spt f_k \oplus f_i \spt \beta f_k
+\end{equation}
+と再帰的に表現される。ここで $\alpha, \beta \in \mathbb{R}$、$f_i , f_k$はMMPSの関数である。
+%
+
+MMPSでの時刻スケジューリングを定式する。ある工程$i$は作業時間$p_i$を持ち、先行工程からの入力が複数の場合は、先行工程からの入力が1番早いものを入力として作業を開始する$\rm{min}$工程と1番遅いものを入力として作業を開始する$\rm{max}$工程がある。ここで変数
+\begin{equation}
+[\bm{F}_+]_{ij} = \begin{cases}
+\text{$p_i$：工程iが先行工程jをもち} \\
+\,\,\, \text{かつ工程$i$が$\rm{min}$工程ではない} \\
+\text{$\veps$：それ以外} \\
+\end{cases} \nonumber
+\end{equation}
+%
+\begin{equation}
+[\bm{F}_-]_{ij} = \begin{cases}
+\text{$- p_i$：工程iが先行工程jをもち} \\
+\,\,\, \text{かつ工程$i$が$\rm{max}$工程ではない} \\
+\text{$\veps$：それ以外} \\
+\end{cases} \nonumber
+\end{equation}
+とすると工程の終了時刻$\bm{x} = [ x_1 , \cdots , x_i ]^T$は
+\begin{equation}
+\bm{x} = \bm{F}_- \otimes \bm{x} \oplus \bm{F}_- \odivide \bm{x} \oplus \bm{B} \otimes \bm{u}
+\end{equation}
+と定式化される。
+MPLの場合、$\bm{x} = \bm{A} \otimes \bm{x} \oplus \bm{b}$となり、右辺の$\bm{x}$に繰り返し代入することにより解を求めることができるが、MMPSの場合は陽的に解をもとめることができない。しかし、漸化式のままコンピュータで扱うことによりネットワーク構造がDAGの場合には解を求めることが可能である。
+%
+% ---------------------------------------
+\section{HaskellによるMin-max-plusの表現}
+% ---------------------------------------
+Haskellによるデータ型宣言を利用してMin-max-plusを記述する
+%
+% ---------------------------------------
+\section{漸化式の2分木による表現と求解}
+% ---------------------------------------
+Min-max-plus代数系を2分木構造で保持することを考える。$\bm{Tree} = (\bm{V}, \bm{E})$で木は構成されるがここで$\bm{V}= \{ \bm{Op}, \bm{N}, \bm{Var} \}$とし、$\bm{Op} = \{ \oplus, \wedge, \otimes \}$、$\bm{N} = \mathcal{D}_+$、$\bm{Var}=\text{変数の集合}$とする。
+%
+% ---------------------------------------
+\section{概要}
+% ---------------------------------------
+ポスター講演を除く講演は，1講演あたりA4版2ページ(カラー可)の予稿集原稿を，
+ファイル容量1Mbyte以下のPDFファイルで提出してください． 
+A4サイズは210mm$\times$297mmです．
+一部のPDF変換ソフトウェアでは標準の用紙サイズがLetterサイズ: 
+215.9mm$\times$279.4mmとなっているものがありますのでご注意ください．
+
+可能な限り，{\TeX}テンプレートを用いて原稿を作成してください．
+{\TeX}以外の文書作成ソフトウェアを用いる場合には，
+左右の余白は25mm，上の余白は20mm，下の余白は30mmにとり，
+本文は11ポイントの文字を使用してください．
+その他の体裁は可能な限り原稿執筆要項のPDFファイルに合わせるようお願いいたします．
+%
+% ---------------------------------------
+\section{原稿執筆時の禁止事項}
+% ---------------------------------------
+原稿執筆時の禁止事項は下記のとおりです．
+禁止事項が確認される原稿につきましては，
+再提出をお願いする，あるいは，掲載をお断りする場合がございますので，十分ご注意ください．
+\begin{enumerate}
+\item \underline{余白サイズ}の変更
+\item \underline{フォントサイズ}の変更
+\item \underline{行間サイズ}の変更
+\item \underline{アブストラクト，キーワード}の追記
+\item \underline{フットノート}の使用
+\item \underline{段組の変更}\\
+大きな図や長い数式を挿入する目的であれば，部分的な1段組みへの変更は可
+\item \underline{講演タイトル，著者姓名，所属}の日英表記の併記
+\item \underline{サブサブセクション}の使用
+\item \underline{ページ数 (2ページ以内)} の超過
+\item \underline{ページ番号}の追記
+\end{enumerate}
+※ テンプレートの体裁を崩さない，特に上記の1)$\sim$10)の
+禁止事項に入らない範囲での設定
+（例えば，eqnarray 環境におけるスペースなど）
+はお好みにあわせてして調整ください．
+%
+% ---------------------------------------
+\section{原稿提出時の注意事項}
+% ---------------------------------------
+%
+提出するファイルは{\TeX}のソースファイルやMS Wordファイルなどではなく，
+適切なフォントを埋め込んで作成されたPDFファイルです．
+年会ホームページから原稿をご提出ください．
+%
+%
+% ----------------------------------------------
+\section{PDFへのフォント埋め込みについて}
+% ----------------------------------------------
+%
+フォントの埋め込まれていないPDFファイルは，そのフォントを持たない
+システムで見た場合に文字化けやレイアウトの崩れを起こす可能性があります．
+念のため，フォントを埋め込んだPDFファイルを作成することをお勧めします．
+特に，一般的でない特殊な環境で作業されている場合や，一般的でないフォントを
+使用している場合は，フォントを埋め込むことを強くお勧めします．
+
+フォントの埋め込まれていないPDFファイルについて，印刷・閲覧時に文字化け等を
+起こしたとしても，実行委員会では一切責任を負いかねます．
+
+また，{\TeX}, PDF等の技術的な事項，およびフォントライセンスに関するお問い合わせにつきましても，
+実行委員会では一切お受けできませんので，ご自身でお調べいただき対応下さいますよう
+お願い申し上げます．
+
+% -------
+\thanks
+% -------
+%
+\dotfill \\ \dotfill
+%
+% ---------------------------------
+\begin{thebibliography}{10}
+% ---------------------------------
+%
+\bibitem{1}
+著者1, 著者2, 論文タイトル, 雑誌名, 巻 (出版年), 開始頁--終了頁.
+%
+\bibitem{2}
+著者, 文献名, 出版社, 出版年.
+%
+\bibitem{3} 
+Author1, Author2 and Author3, Paper Title, Journal Name, Vol. (Year), $\ast\ast$--$\ast\ast$.
+%
+\bibitem{4}
+Author, Book Title, Publisher, Year.
+%
+\bibitem{5}
+Author1 and Author2, Paper Title, in: Proc. of Proceedings Name, Vol. $\ast\ast$, pp. $\ast\ast$--$\ast\ast$, Year.
+%
+\bibitem{6}
+JSIAM Web Page, \url{http://www2.jsiam.org/}.
+\end{thebibliography}
+※ 本文の出現順に並べてください．
+% ---------- 本文（ここまで）--------------------------------------------------------------------------------------------
+%
+\end{document}
