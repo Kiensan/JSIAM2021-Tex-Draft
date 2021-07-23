@@ -78,7 +78,7 @@
 % ---------- タイトル，著者名，所属，e-mailアドレスを記入してください（ここから） ----------
 \Title{DAG構造を持つMin-max-plusスケジューリングの求解}
 %%% 著者，所属が複数行になる場合は \author{}，\affiliation{}を追加してください
-\Author{佐川 恭平$^{1}$, 五島 洋行2名$^{2}$}
+\Author{佐川 恭平$^{1}$, 五島 洋行$^{2}$}
 \Affiliation{$^{1}$長岡技術科学 情報経営システム工学課程，$^{2}$所属2}
 \Email{kyohei.sagwa@gmail.com}
 % ---------- タイトル，著者名，所属，e-mailアドレスを記入してください（ここまで） ----------
@@ -93,13 +93,19 @@
 % ---------------------------------------
 \section{はじめに}
 % ---------------------------------------
+Program Evaluation and Review Tequnic (PERT)などのスケジューリング問題に対して、Max-plus代数を利用したアプローチが存在する。
+
 Objective: HaskellによるMin-max-plus方程式の求解
 %
 % ---------------------------------------
 \section{Max-plus代数}
 % ---------------------------------------
-Max-plus代数は、$\mathbb{R}_{\rm{max}}=\mathbb{R} \cup \{ - \infty \}$上で演算$x \oplus y \equiv \rm{max}(x,y) $と$x \otimes y \equiv x + y$が定義された代数系である。さらにMin-max-plus代数では台集合を$\overline{\mathbb{R}}_{\rm{max}} = \mathbb{R} \cup \{ \pm \infty \}$に拡張し演算$x \wedge y = \rm{min}(x,y)$と$x \odivide y = -x + y$を追加する。
+Max-plus代数は、$\mathbb{R}_{\rm{max}}=\mathbb{R} \cup \{ \veps \}$上で演算$x \oplus y \equiv \rm{max}(x,y) $と$x \otimes y \equiv x + y$が定義された代数系である。さらにMin-max-plus代数では演算$x \wedge y = \rm{min}(x,y)$と$x \odivide y = -x + y$を追加する。ここで台集合の元$\veps$は通常$-\infty$で定義されるが本研究ではHaskellでの取り扱いを簡素にするため、
+%
+\begin{eqnarry}
 
+\end{eqnarray}
+%
 Min-max-plus代数で定義されるMin-Max-plus System(MMPS)は、MMPS表現$f$と、変数$x_I$を用いて
 \begin{equation}
 f = x_i \spt \alpha \spt f_k \oplus f_i \spt f_k \wedge f_i \spt f_k \oplus f_i \spt \beta f_k
