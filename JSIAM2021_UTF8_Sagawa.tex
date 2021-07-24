@@ -63,8 +63,16 @@
 %  ------自前で追加--------
 \usepackage{amssymb}
 \usepackage{listings}
+\usepackage{algorithm,algorithmic}
+ \usepackage{comment}
 % listingsの設定
-\lstset{columns=fullflexible, basicstyle=\ttfamily, xleftmargin=0.2cm, frame=tlbr, framesep=0pt, framerule=0pt}
+\lstset{
+	columns=fullflexible,
+	basicstyle=\ttfamily,
+	xleftmargin=0.1cm, % left margin
+	aboveskip=1pt,  % top margin
+	belowskip=1pt % bottom margin
+}
 % 斜体のまま太字にする(大文字・小文字両方可)
 \newcommand{\bm}[1]{{\text{\boldmath $#1$}}}
 % 演算子と変数の定義
@@ -79,7 +87,7 @@
 \twocolumn[
 %
 % ---------- タイトル，著者名，所属，e-mailアドレスを記入してください（ここから） ----------
-\Title{DAG構造を持つMin-max-plusスケジューリングの求解}
+\Title{Haskellを用いたMin-max-plusスケジューリングの求解}
 %%% 著者，所属が複数行になる場合は \author{}，\affiliation{}を追加してください
 \Author{佐川 恭平$^{1}$, 五島 洋行$^{2}$}
 \Affiliation{$^{1}$長岡技術科学大学 情報経営システム工学課程，$^{2}$法政大学 理工学部 経営システム工学科}
@@ -96,16 +104,16 @@
 % ---------------------------------------
 \section{はじめに}
 % ---------------------------------------
-Program evaluation and review technique (PERT)などのスケジューリング問題に対して、Max-plus代数を利用したアプローチがある[1]。PERTにおける最早完了時刻と最遅開始時刻はそれぞれ双対なMax-plus代数とMin-plus代数の線形方程式で表される。Max-plus代数上で表された線型方程式はMax-plus線形システム(MPL)と呼ばれKleene閉包と呼ばれる演算によって代数的に解を求めることが可能である。
+Program evaluation and review technique (PERT)のスケジューリング問題に対して、Max-plus代数を利用したアプローチがある[1]。PERTにおける最早完了時刻はMax-plus線形システム(MPL)で表されKleene閉包と呼ばれる演算によって代数的に解を求めることが可能である。
 
 一方、スケジューリング問題の代数的解法には、取り扱いが簡単になることと引き換えに計算量が多いことが問題になる。そこで工程の順序関係に従ってトポロジカルソートを行うことによって効率的に求解する方法が存在する[2]。両者の方法は代数的な明快さと計算量のトレードオフとなっておりそれら両方を満たす効率良い解法が存在しなかった。
 
-MPLによるスケジューリングでは、ネットワークの構造の表現の範囲が決められている。CPUスケジューリングで知られるFirst come first served (FCFS)では最も早く到着したジョブを工程の開始時間とするため、min演算が現れるが、Max-plus代数では取り扱うことができない。この問題を解決するためにはmax演算とmin演算が混合した記述が可能Min-max-plus system (MMPS) [3]を導入する必要がある。そこで本研究では、MMPS上のMin-max-plus方程式で定式化されるスケジューリング問題について、Haskellを利用した代数表現による求解を提案する。
+MPLではスケジューリングするネットワークが構造依存となる。CPUスケジューリングで知られるFirst come first served (FCFS)では最も早く到着したジョブを工程の開始時間とするため、min演算が現れるが、Max-plus代数では取り扱うことができない。この問題を解決するためにはmax演算とmin演算が混合した記述が可能Min-max-plus system (MMPS) [3]を導入する必要がある。しかしMMPS上で表されるスケジューリング問題に対して解析解を求めるアルゴリズムは存在しない。そこで本研究では、MMPS上のMin-max-plus方程式で定式化されるスケジューリング問題について、Haskellを利用した代数表現による求解を提案する。
 %
 % ---------------------------------------
 \section{MMPSによるスケジューリング問題の定式化}
 % ---------------------------------------
-Max-plus代数は、$\mathbb{R}_{\rm{max}}=\mathbb{R} \cup \{ \veps \}$上で演算$x \oplus y \equiv \rm{max}(x,y) $と$x \otimes y \equiv x + y$が定義された代数系である。さらにMin-max-plus代数では演算$x \wedge y = \rm{min}(x,y)$と$x \odivide y = -x + y$を追加する。ここで台集合の元$\veps$は通常$-\infty$で定義されるが本研究ではHaskellでの取り扱いを簡素にするため、
+Max-plus代数は、$\mathbb{R}_{\rm{max}}=\mathbb{R} \cup \{ \veps \}$上で演算$x \oplus y \equiv \rm{max}$$(x, y)$と$x \otimes y \equiv x + y$が定義された代数系である。さらにMin-max-plus代数では演算$x \wedge y = \rm{min}(x,y)$と$x \odivide y = -x + y$を追加する。ここで台集合の元$\veps$は通常$-\infty$で定義されるが本研究ではHaskellでの取り扱いを簡素にするため、
 %
 \begin{eqnarray}
 x \oplus \veps &=& \veps \oplus x = x \wedge \veps = \veps \wedge x = x , \nonumber \\
@@ -114,11 +122,11 @@ x \otimes \veps &=& \veps \otimes x = \veps \,\,\,(x \in \mathbb{R}_{\rm{max}}) 
 %
 を満たす元と定義する。
 
-Min-max-plus代数で定義されるMin-Max-plus System(MMPS)は、MMPS表現$f$と、変数$x_i$を用いて
+Min-max-plus代数で定義されるMin-Max-plus System(MMPS)のMMPS表現$f$は
 \begin{equation}
-f = x_i \spt \alpha \spt f_k \oplus f_l \spt f_k \wedge f_l \spt f_k \oplus f_l
+f = x_i \spt \alpha \spt f_k \oplus f_l \spt f_k \wedge f_l \spt f_k \otimes f_l
 \end{equation}
-と再帰的に表現される。ここで $\alpha \in \mathbb{R}$、$f_k , f_l$はMMPS表現である。
+と再帰的に表現される。ここで$x_i$は変数、$\alpha \in \mathbb{R}$、$f_k , f_l$はMMPS表現である。
 %
 
 MMPSでの時刻スケジューリングを定式する。ある工程$i$は作業時間$p_i$を持ち、先行工程からの入力が複数の場合は、先行工程からの入力が1番早いものを入力として作業を開始する$\rm{min}$工程と1番遅いものを入力として作業を開始する$\rm{max}$工程がある。ここで行列
@@ -146,151 +154,98 @@ MMPSでの時刻スケジューリングを定式する。ある工程$i$は作�
 \end{cases}
 \]
 %
-を定義すると、とすると工程の終了時刻$\bm{x} = [ x_1 \, \cdots \, x_i ]^T$は
+を定義し、工程の総数を$n$とすると工程の作業完了時刻$\bm{x} = [ x_1 \, \cdots \, x_n ]^T$は
 \begin{equation}
 \bm{x} = \bm{P} \otimes \{ \bm{F}_+ \otimes \bm{x} \oplus \bm{F}_- \odivide \bm{x} \oplus \bm{u} \}
 \end{equation}
-と定式化される。ここで$\bm{P} = \rm{diag}$$[p_1 \, \cdots \, p_n]$である。
+となる。ここで$\bm{P} = \rm{diag}$$[p_1 \, \cdots \, p_n]$である。
 
-MPLの場合、$\bm{x} = \bm{A} \otimes \bm{x} \oplus \bm{b}$となり、右辺の$\bm{x}$に繰り返し代入することにより解を求めることができるが、MMPSの場合は陽的に解をもとめることができない。しかし、漸化式のままコンピュータで扱うことによりネットワーク構造がDAGの場合には解を求めることが可能である。
+MPLの場合$\bm{x} = \bm{A} \otimes \bm{x} \oplus \bm{b}$となり、右辺の$\bm{x}$に繰り返し代入することにより解を求めることができるが、MMPSの場合は陽的に解をもとめることができない。しかしHaskellを導入することによりネットワーク構造がDAGの場合には解を求めることが可能である。
 %
 % ---------------------------------------
 \section{HaskellによるMin-max-plusの表現}
 % ---------------------------------------
-まずMin-max-plus代数はHaskellの型クラスを利用して
+Haskellの機能である型クラスとデータ型宣言を利用して行列上でMMPSの計算を可能とすること目標とする。Haskellではデータ構造をプログラミング言語の型として表現する。ここで型クラスを導入することにより、任意の型に制約を加えることが可能となる。そこでまず、Min-max-plus代数はHaskellの型クラスを利用して
 \begin{lstlisting}
-class MaxMinPlus
+class MinMaxPlus a
 	zero :: a
 	one :: a
 	oplus :: a -> a -> a
 	otimes :: a -> a -> a
 	wedge :: a -> a -> a
 \end{lstlisting}
-と表される。それぞれの定数と関数が型aにおけるMMP代数の表現となる。
+と記述される。このプログラムは、任意の型aに対して、零元と単位元、そしてそれぞれMin-max-plusの演算を定義することによってMin-max-plus代数として表すことができることを意味している。
 %
-次にMMPSはHaskellのデータ型宣言によって
+次にMMPS表現はHaskellのデータ型宣言によって
 \begin{lstlisting}
 data MMPS = Min MMPS MMPS 
 	| Max MMPS MMPS | Eps
 	| Min MMPS MMPS
 	| Plus MMPS MMPS
-	| Minus MMPS
+	| Divide MMPS MMPS
 	| Just Int
 	| Variable Int
 \end{lstlisting}
-と表される。この表現は2章でのMMPSの表現形式とよく似ており、数学的記法をHaskellのプログラムに持ち込めることが利点である。
-
-ここでネットワークの構造をデータ型宣言によって
+と記述される。この記述はHaskell上でMMPSを2分木によって保持することを可能とする。そして今定義したMMPSに対して適切な零元、単位元と演算を作成し、この定義をMinMaxPlus型クラスに適用する。
+また行列を
 \begin{lstlisting}
-data Graph = Vertex Int
-	| Edge Int Int
+data (MinMaxPlus a) => Matrix a
+	= Scalar a
+	| Matrix [[a]]
 \end{lstlisting}
+と各要素にMMPS表現を持つ行列と定義する。そして同じくMinMaxPlus型クラスに適用する。これにより式(2)をHaskell上で計算することが可能となる。
 %
-となる。ここでコンストラクタでEdgeは始点と終点のラベルがIntであるグラフのエッジである。また型制約という機能を用いて行列の演算の型を
+\section{MMP方程式の求解アルゴリズム}
+Haskell上でMMPS表現は2分木で表されていることから、グラフ$\bm{G}=(\bm{V}, \bm{E})$で表し$\bm{V} =  \bm{Op} $ $ \spt $ $ \mathbb{R}_{\rm{max}} $$ \spt \bm{Var}$、$\bm{Op} = \{ \oplus, \wedge, \otimes, \odivide \}$、$\bm{Var}=\text{変数の集合}$として数式上で表現する。
+
+MMPSから再帰的に計算を行い値を返す関数$redex：\bm{G} \rightarrow \mathbb{R}_{\rm{max}}$を定義する。木の根ノードを取り出す関数$root：\bm{G} \rightarrow \bm{V}$と、
+木の左右の子ノードを根ノードとし木を取り出す関数$child$$：\bm{G} \rightarrow (\bm{G}, \bm{G})$を補助関数として定義すると関数$redex$は
+%
 \begin{lstlisting}[escapechar=\@]
-@$\oplus, \otimes, \wedge, \odivide$：MaxMinPlus a => \\
-\,\,\,\,\,Matrix a -> Matrix a -> Matrix a
+@$redex(x \spt root(x) \in \mathbb{R}_{\rm{max}}) = root(x)$@
+@$redex(x \spt root(x) \in \bm{Op}) =$@
+@$\;\;\; redex(l) \; root(x) \; redex(r) \spt (l, r) = child(x)$@
+@$redex(x \spt root(x) \in \bm{Var}) = compute(root(x))$@
 \end{lstlisting}
-とする。
-% ---------------------------------------
-\section{漸化式の2分木による表現と求解}
-% ---------------------------------------
-Min-max-plus代数系を2分木構造で保持することを考える。$\bm{Tree} = (\bm{V}, \bm{E})$で木は構成されるがここで$\bm{V}= \{ \bm{Op}, \bm{N}, \bm{Var} \}$とし、$\bm{Op} = \{ \oplus, \wedge, \otimes \}$、$\bm{N} = \mathcal{D}_+$、$\bm{Var}=\text{変数の集合}$とする。
 %
-% ---------------------------------------
-\section{概要}
-% ---------------------------------------
-ポスター講演を除く講演は，1講演あたりA4版2ページ(カラー可)の予稿集原稿を，
-ファイル容量1Mbyte以下のPDFファイルで提出してください． 
-A4サイズは210mm$\times$297mmです．
-一部のPDF変換ソフトウェアでは標準の用紙サイズがLetterサイズ: 
-215.9mm$\times$279.4mmとなっているものがありますのでご注意ください．
+となる。
+次にHaskell上で式(2)を計算した各作業完了時刻$x_i$を保持する連想配列$var：\bm{Var}$ $\rightarrow$ $\bm{G}$と最終的な値を保持する連想配列$memo：$ $\bm{Var} \rightarrow \mathbb{R}_{\rm{max}}$を用意すると、変数から値を求める関数$compute：\bm{Var} \rightarrow \mathbb{R}_{\rm{max}}$は
+%
+\begin{lstlisting}[escapechar=\@]
+@$compute(x \spt memo[x] \neq null ) = memo[x]$@
+@$compute(x \spt memo[x] = null)$@
+@$\;\;\;\; = memo[x] \spt memo[x] \leftarrow redex(var[x])$@
+\end{lstlisting}
+%
+となる。
+%関数$redex$と$compute$は再帰関数となっており、前者は式の2分木を深さ優先探索(DES)で計算する関数、後者はネットワークをDESで計算する関数となる。数式はHaskellのデータ型宣言MMPSによりその構造が有向非サイクルグラフ(DAG)となることを保証するが、ネットワークに対してはDAGであることは保証されない。そこで、スケジューリングするシステムのネットワーク構造をDAGであると仮定する。
+関数$redex$と$compute$は再帰関数となっているが、関数$compute$はネットワーク構造が有向非サイクルグラフ(DAG)であることを仮定することにより基底を保証する。
 
-可能な限り，{\TeX}テンプレートを用いて原稿を作成してください．
-{\TeX}以外の文書作成ソフトウェアを用いる場合には，
-左右の余白は25mm，上の余白は20mm，下の余白は30mmにとり，
-本文は11ポイントの文字を使用してください．
-その他の体裁は可能な限り原稿執筆要項のPDFファイルに合わせるようお願いいたします．
-%
-% ---------------------------------------
-\section{原稿執筆時の禁止事項}
-% ---------------------------------------
-原稿執筆時の禁止事項は下記のとおりです．
-禁止事項が確認される原稿につきましては，
-再提出をお願いする，あるいは，掲載をお断りする場合がございますので，十分ご注意ください．
-\begin{enumerate}
-\item \underline{余白サイズ}の変更
-\item \underline{フォントサイズ}の変更
-\item \underline{行間サイズ}の変更
-\item \underline{アブストラクト，キーワード}の追記
-\item \underline{フットノート}の使用
-\item \underline{段組の変更}\\
-大きな図や長い数式を挿入する目的であれば，部分的な1段組みへの変更は可
-\item \underline{講演タイトル，著者姓名，所属}の日英表記の併記
-\item \underline{サブサブセクション}の使用
-\item \underline{ページ数 (2ページ以内)} の超過
-\item \underline{ページ番号}の追記
-\end{enumerate}
-※ テンプレートの体裁を崩さない，特に上記の1)$\sim$10)の
-禁止事項に入らない範囲での設定
-（例えば，eqnarray 環境におけるスペースなど）
-はお好みにあわせてして調整ください．
-%
-% ---------------------------------------
-\section{原稿提出時の注意事項}
-% ---------------------------------------
-%
-提出するファイルは{\TeX}のソースファイルやMS Wordファイルなどではなく，
-適切なフォントを埋め込んで作成されたPDFファイルです．
-年会ホームページから原稿をご提出ください．
-%
-%
-% ----------------------------------------------
-\section{PDFへのフォント埋め込みについて}
-% ----------------------------------------------
-%
-フォントの埋め込まれていないPDFファイルは，そのフォントを持たない
-システムで見た場合に文字化けやレイアウトの崩れを起こす可能性があります．
-念のため，フォントを埋め込んだPDFファイルを作成することをお勧めします．
-特に，一般的でない特殊な環境で作業されている場合や，一般的でないフォントを
-使用している場合は，フォントを埋め込むことを強くお勧めします．
-
-フォントの埋め込まれていないPDFファイルについて，印刷・閲覧時に文字化け等を
-起こしたとしても，実行委員会では一切責任を負いかねます．
-
-また，{\TeX}, PDF等の技術的な事項，およびフォントライセンスに関するお問い合わせにつきましても，
-実行委員会では一切お受けできませんので，ご自身でお調べいただき対応下さいますよう
-お願い申し上げます．
-
-% -------
-\thanks
-% -------
-%
-\dotfill \\ \dotfill
+2つの関数を定義することにより各最早時刻を求めることができた。最終的に全ての最早完了時刻の連想配列$\overline{\bm{x}}$を求めるアルゴリズムは以下のようになる。
+\begin{algorithm}
+\caption{Min-max-plus方程式の再帰求解}
+\begin{algorithmic}[1]
+	\FOR {$x \leftarrow var$}
+		\STATE $\overline{\bm{x}} \leftarrow compute(x)$
+	\ENDFOR
+\RETURN $\overline{\bm{x}}$ 
+\end{algorithmic} 
+\end{algorithm}
 %
 % ---------------------------------
-\begin{thebibliography}{10}
+\begin{thebibliography}{3}
 % ---------------------------------
 %
 \bibitem{1}
-著者1, 著者2, 論文タイトル, 雑誌名, 巻 (出版年), 開始頁--終了頁.
+五島洋行, Max-Plus代数を用いて日程計画問題を考える, 計測と制御, 第52巻 (2013), 1083--1089.
 %
 \bibitem{2}
-著者, 文献名, 出版社, 出版年.
+Hiroyuki Goto, A Fast Computation for the State Vector in a Max-Plus Algebraic System with an Adjacency Matrix of a Directed Acyclic Graph, SICE Journal of Control, Measurement, and System Integration, Vol 4 No.5 (2011), 361--364.
 %
 \bibitem{3} 
-Author1, Author2 and Author3, Paper Title, Journal Name, Vol. (Year), $\ast\ast$--$\ast\ast$.
+B. De Schutter, T. J. J. van den Boom, Model predictive control for max-min-plus scaling systems, Proc. 2001 American Control Conf. (2001), 319--324.
 %
-\bibitem{4}
-Author, Book Title, Publisher, Year.
-%
-\bibitem{5}
-Author1 and Author2, Paper Title, in: Proc. of Proceedings Name, Vol. $\ast\ast$, pp. $\ast\ast$--$\ast\ast$, Year.
-%
-\bibitem{6}
-JSIAM Web Page, \url{http://www2.jsiam.org/}.
 \end{thebibliography}
-※ 本文の出現順に並べてください．
 % ---------- 本文（ここまで）--------------------------------------------------------------------------------------------
 %
 \end{document}
